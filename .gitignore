@@ -133,3 +133,4 @@ listener_bot/config.json
 listeners/**
 listener_bot/.env
 client/.env
+client/custom/**
