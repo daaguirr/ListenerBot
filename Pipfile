@@ -8,6 +8,18 @@ verify_ssl = true
 [packages]
 python-telegram-bot = "*"
 requests = "*"
+deepdiff = "*"
+beautifulsoup4 = "*"
+lxml = "*"
+ftfy = "*"
+typing-extensions = "*"
+coolname = "*"
+environs = "*"
+Flask = "*"
+flask-admin = "*"
+peewee = "*"
+wtf-peewee = "*"
+flask-restful = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
