@@ -7,13 +7,20 @@ from flask_admin import Admin
 from flask_admin.contrib.peewee import ModelView
 from flask_restful import Resource, Api, reqparse
 
+import logging
+
 from listener_bot.models import Listener, Message
 
 env = Env()
 env.read_env()
 
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = env.str("SECRET_KEY")
+app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
+
 api = Api(app)
 
 
@@ -73,18 +80,12 @@ class Update(Resource):
 
 api.add_resource(Update, '/update')
 
+admin = Admin(app, name='ListenerBotAdmin', template_mode='bootstrap3')
+
+admin.add_view(ListenerAdmin(Listener))
+admin.add_view(MessageAdmin(Message))
+
 if __name__ == '__main__':
-    import logging
-
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.DEBUG)
-
-    app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
-    admin = Admin(app, name='ListenerBotAdmin', template_mode='bootstrap3')
-
-    admin.add_view(ListenerAdmin(Listener))
-    admin.add_view(MessageAdmin(Message))
-
     try:
         Listener.create_table()
         Message.create_table()
