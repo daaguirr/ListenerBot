@@ -10,7 +10,7 @@ from telegram import ReplyKeyboardRemove, Update, InlineKeyboardMarkup, InlineKe
 from telegram.ext import Updater, ConversationHandler, CommandHandler, CallbackContext, \
     CallbackQueryHandler, MessageHandler, Filters
 
-from .models import Listener
+from listener_bot.models import Listener
 
 env = Env()
 env.read_env()
