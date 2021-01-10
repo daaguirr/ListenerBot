@@ -2,6 +2,7 @@ import datetime
 import os
 import subprocess
 import time
+from difflib import unified_diff
 
 import requests
 from environs import Env
@@ -17,7 +18,7 @@ class Client:
     ping_interval: int = 60 * 60  # 1 hour
 
     def __init__(self, interval_in_seconds: int, api_key: str):
-        assert interval_in_seconds > 60
+        assert interval_in_seconds > 10
         self.interval: int = interval_in_seconds
         self.api_key = api_key
 
@@ -27,28 +28,27 @@ class Client:
     def ping(self):
         requests.post(f"{URL_BASE}/ping", json={"key": self.api_key})
 
+    def on_update(self, new):
+        self.notify(new)
+        self.last = new
+
     def run(self):
         try:
-            self.ping()
-            new = self.loop()
-            self.notify(new)
-
-            next_ping = self.ping_interval
-            next_loop = self.interval
+            next_ping = 0
+            next_loop = 0
 
             while True:
+                print(self.last)
                 if next_ping <= 0:
                     self.ping()
                     next_ping = self.ping_interval
                 if next_loop <= 0:
                     new = self.loop()
                     if new != self.last:
-                        self.notify(new)
-                        self.last = new
-
+                        self.on_update(new)
                     next_loop = self.interval
 
-                next_stop = min(self.interval, self.ping_interval)
+                next_stop = min(next_loop, next_ping)
                 time.sleep(next_stop)
 
                 next_ping -= next_stop
@@ -70,11 +70,21 @@ class ListenFileClient(Client):
     def __init__(self, path: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.path = path
+        self.last_content = ""
 
     def on_update_message(self, new):
         with open(self.path, 'r') as file:
-            value = file.read()
-        return f"Update at {self.last} on file {self.path} with value: \n\n {value}"
+            value = file.read().splitlines(keepends=True)
+
+        diff = ''.join(unified_diff(self.last_content, value))
+        return f"Update at {self.last} on file {self.path} with value: \n\n{diff}"
+
+    def on_update(self, new):
+        super(ListenFileClient, self).on_update(new)
+        with open(self.path, 'r') as file:
+            value = file.read().splitlines(keepends=True)
+
+        self.last_content = value
 
     def loop(self):
         update = os.path.getmtime(self.path) if os.path.exists(self.path) else None
@@ -102,6 +112,4 @@ class ListenProcessClient(Client):
     def loop(self):
         p1 = subprocess.Popen(["ps", "-o", "pid=", "-p", self.pk], stdout=subprocess.PIPE)
         res = p1.communicate()
-        if res[0] == b'':
-            return f'Finished process with pk={self.pk}'
         return res[0].decode()
