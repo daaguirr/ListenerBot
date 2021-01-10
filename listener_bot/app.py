@@ -24,6 +24,11 @@ app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 api = Api(app)
 
 
+@app.route(f"/listener_bot_api", methods=["GET", "POST"])
+def receive():
+    return {}, 200
+
+
 class ListenerAdmin(ModelView):
     ...
 
