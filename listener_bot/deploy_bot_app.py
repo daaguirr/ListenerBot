@@ -1,15 +1,12 @@
 from flask import Flask
 from flask import request
-from main import run_prod
-from environs import Env
 
-env = Env()
-env.read_env()
+from main import run_prod
 
 app = Flask(__name__)
 
 
-@app.route(f"/{env.str('BOT_KEY')}", methods=["GET", "POST"])
+@app.route(f"/", methods=["GET", "POST"])
 def receive():
     try:
         update = request.json
