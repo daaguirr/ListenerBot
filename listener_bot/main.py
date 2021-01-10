@@ -5,10 +5,10 @@ from typing import Iterator
 
 from environs import Env
 # noinspection PyPackageRequirements
-from telegram import ReplyKeyboardRemove, Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import ReplyKeyboardRemove, Update, InlineKeyboardMarkup, InlineKeyboardButton, Bot
 # noinspection PyPackageRequirements
 from telegram.ext import Updater, ConversationHandler, CommandHandler, CallbackContext, \
-    CallbackQueryHandler, MessageHandler, Filters
+    CallbackQueryHandler, MessageHandler, Filters, Dispatcher
 
 from models import Listener
 
@@ -116,18 +116,10 @@ def disable_get_listener_name(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
-def main():
-    """Start the bot."""
-    updater = Updater(env.str("BOT_KEY"), use_context=True)
-
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
-
-    # on different commands - answer in Telegram
+def configure_bot(dispatcher: Dispatcher):
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help_command))
 
-    # on noncommand i.e message - echo the message on Telegram
     create_listener_hand = ConversationHandler(
         entry_points=[CommandHandler('create_listener', create_listener)],
 
@@ -152,6 +144,15 @@ def main():
 
     dispatcher.add_error_handler(error)
 
+
+def local():
+    """Start the bot."""
+    updater = Updater(env.str("BOT_KEY"), use_context=True)
+
+    # Get the dispatcher to register handlers
+    dispatcher = updater.dispatcher
+
+    configure_bot(dispatcher)
     # Start the Bot
     updater.start_polling()
 
@@ -161,5 +162,17 @@ def main():
     updater.idle()
 
 
+def run_prod(message):
+    bot = Bot(env.str("BOT_KEY"))
+    # noinspection PyTypeChecker
+    dp = Dispatcher(bot, None, workers=0)
+
+    configure_bot(dp)
+
+    # decode update and try to process it
+    update = Update.de_json(message, bot)
+    dp.process_update(update)
+
+
 if __name__ == '__main__':
-    main()
+    local()
