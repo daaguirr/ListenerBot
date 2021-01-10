@@ -21,7 +21,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = env.str("SECRET_KEY")
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 
-api = Api(app, prefix='listener_bot_api/')
+api = Api(app, prefix='/listener_bot_api')
 
 
 @app.route(f"/listener_bot_api", methods=["GET", "POST"])
