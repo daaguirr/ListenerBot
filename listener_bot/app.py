@@ -21,7 +21,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = env.str("SECRET_KEY")
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 
-api = Api(app)
+api = Api(app, prefix='listener_bot_api/')
 
 
 @app.route(f"/listener_bot_api", methods=["GET", "POST"])
@@ -85,7 +85,7 @@ class Update(Resource):
 
 api.add_resource(Update, '/update')
 
-admin = Admin(app, name='ListenerBotAdmin', template_mode='bootstrap3')
+admin = Admin(app, url='/listener_bot_api/admin', name='ListenerBotAdmin', template_mode='bootstrap3')
 
 admin.add_view(ListenerAdmin(Listener))
 admin.add_view(MessageAdmin(Message))
