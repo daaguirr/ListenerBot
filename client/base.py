@@ -32,6 +32,10 @@ class Client:
         self.notify(new)
         self.last = new
 
+    @staticmethod
+    def cond(old, new):
+        return old != new
+
     def run(self):
         try:
             next_ping = 0
@@ -43,7 +47,7 @@ class Client:
                     next_ping = self.ping_interval
                 if next_loop <= 0:
                     new = self.loop()
-                    if new != self.last:
+                    if self.cond(self.last, new):
                         self.on_update(new)
                     next_loop = self.interval
 
