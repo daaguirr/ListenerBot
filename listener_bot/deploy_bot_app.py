@@ -6,7 +6,7 @@ from main import run_prod
 app = Flask(__name__)
 
 
-@app.route(f"/", methods=["GET", "POST"])
+@app.route(f"/bots/listener_bot", methods=["GET", "POST"])
 def receive():
     try:
         update = request.json
