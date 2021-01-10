@@ -38,7 +38,6 @@ class Client:
             next_loop = 0
 
             while True:
-                print(self.last)
                 if next_ping <= 0:
                     self.ping()
                     next_ping = self.ping_interval
