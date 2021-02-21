@@ -20,6 +20,7 @@ flask-admin = "*"
 peewee = "*"
 wtf-peewee = "*"
 flask-restful = "*"
+pytz = "*"
 
 [requires]
 python_version = "3.8"
