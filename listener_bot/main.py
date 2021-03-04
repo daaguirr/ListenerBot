@@ -85,7 +85,7 @@ def create_listener_get_description(update: Update, context: CallbackContext):
 
 
 def get_current_listeners(chat_id):
-    return Listener.select().where(Listener.chat_id == chat_id, not Listener.enable)
+    return Listener.select().where(Listener.chat_id == chat_id, Listener.enable)
 
 
 def get_listeners_inline(update: Update):
