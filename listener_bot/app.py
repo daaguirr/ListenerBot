@@ -84,11 +84,14 @@ class Update(Resource):
         return {}, 403
 
 
-class UpdateImage(Update):
+class UpdateImage(Resource):
     # noinspection PyMethodMayBeStatic
-    def notify(self, chat_id, base64_img: str):
+    def notify(self, chat_id, base64_img: str, caption: str):
         img = base64.b64decode(base64_img)
-        requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendPhoto?chat_id={chat_id}",
+        requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendMessage",
+                      json={'chat_id': chat_id, 'text': caption})
+
+        requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendPhoto?chat_id={chat_id}&caption={caption}",
                       files={'photo': img})
 
     def post(self):
@@ -97,9 +100,9 @@ class UpdateImage(Update):
 
         listener = Listener.get(Listener.key == data["key"])
         if listener.enable:
-            Message.create(listener=listener, data="Imagen", timestamp=dt)
-            msg = f"{listener.description} listener new message:\n{data['data']}"
-            self.notify(listener.chat_id, msg)
+            Message.create(listener=listener, data=data["data"], timestamp=dt)
+            msg = f"{listener.description} listener new message:\n"
+            self.notify(listener.chat_id, data['data'], msg)
             return {}, 200
         return {}, 403
 
