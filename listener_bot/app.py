@@ -1,3 +1,4 @@
+import base64
 import datetime
 
 import requests
@@ -78,12 +79,21 @@ class Update(Resource):
         if listener.enable:
             Message.create(listener=listener, data=data["data"], timestamp=dt)
             msg = f"{listener.description} listener new message:\n{data['data']}"
-            self.notify(listener.chat_id, msg=msg)
+            self.notify(listener.chat_id, msg)
             return {}, 200
         return {}, 403
 
 
+class UpdateImage(Resource):
+    # noinspection PyMethodMayBeStatic
+    def notify(self, chat_id, base64_img: str):
+        img = base64.b64decode(base64_img)
+        requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendPhoto?chat_id={chat_id}",
+                      files={'photo': img}),
+
+
 api.add_resource(Update, '/update')
+api.add_resource(UpdateImage, '/update_image')
 
 admin = Admin(app, url='/listener_bot_api/admin', name='ListenerBotAdmin', template_mode='bootstrap3')
 
