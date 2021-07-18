@@ -1,6 +1,6 @@
 from playhouse.migrate import *
 
-db = SqliteDatabase('database.db')
+db = SqliteDatabase('dbb.sqlite')
 migrator = SqliteMigrator(db)
 
 data = TextField()
