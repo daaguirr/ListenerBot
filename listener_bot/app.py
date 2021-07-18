@@ -89,7 +89,19 @@ class UpdateImage(Update):
     def notify(self, chat_id, base64_img: str):
         img = base64.b64decode(base64_img)
         requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendPhoto?chat_id={chat_id}",
-                      files={'photo': img}),
+                      files={'photo': img})
+
+    def post(self):
+        data = update_parser.parse_args()
+        dt = datetime.datetime.utcnow()
+
+        listener = Listener.get(Listener.key == data["key"])
+        if listener.enable:
+            Message.create(listener=listener, data="Imagen", timestamp=dt)
+            msg = f"{listener.description} listener new message:\n{data['data']}"
+            self.notify(listener.chat_id, msg)
+            return {}, 200
+        return {}, 403
 
 
 api.add_resource(Update, '/update')
