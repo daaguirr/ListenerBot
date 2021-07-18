@@ -91,7 +91,7 @@ class UpdateImage(Resource):
         requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendMessage",
                       json={'chat_id': chat_id, 'text': caption})
 
-        requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendPhoto?chat_id={chat_id}&caption={caption}",
+        requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendPhoto?chat_id={chat_id}",
                       files={'photo': img})
 
     def post(self):
