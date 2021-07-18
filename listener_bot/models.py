@@ -19,5 +19,5 @@ class Listener(BaseModel):
 class Message(BaseModel):
     id = peewee.BigAutoField(unique=True)
     listener = peewee.ForeignKeyField(Listener, on_delete='CASCADE')
-    data = peewee.CharField()
+    data = peewee.TextField()
     timestamp = peewee.DateTimeField()
