@@ -84,7 +84,7 @@ class Update(Resource):
         return {}, 403
 
 
-class UpdateImage(Resource):
+class UpdateImage(Update):
     # noinspection PyMethodMayBeStatic
     def notify(self, chat_id, base64_img: str):
         img = base64.b64decode(base64_img)
