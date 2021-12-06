@@ -21,6 +21,7 @@ peewee = "*"
 wtf-peewee = "*"
 flask-restful = "*"
 pytz = "*"
+Pillow = "*"
 
 [requires]
 python_version = "3.8"

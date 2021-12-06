@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 from difflib import unified_diff
+from typing import Tuple
 
 import requests
 from environs import Env
@@ -14,27 +15,27 @@ URL_BASE = env.str("URL_BASE")
 
 
 class Client:
-    last = None
+    last_cond_value = None
+    last_user_value = None
+
     ping_interval: int = 60 * 60  # 1 hour
+    url_suffix = "update"
 
     def __init__(self, interval_in_seconds: int, api_key: str):
-        assert interval_in_seconds > 10
+        assert interval_in_seconds > 1
         self.interval: int = interval_in_seconds
         self.api_key = api_key
 
-    def loop(self):
-        raise NotImplementedError
-
     def ping(self):
-        requests.post(f"{URL_BASE}/ping", json={"key": self.api_key})
+        try:
+            requests.post(f"{URL_BASE}/ping", json={"key": self.api_key})
+        except:
+            pass
 
-    def on_update(self, new):
-        self.notify(new)
-        self.last = new
-
-    @staticmethod
-    def cond(old, new):
-        return old != new
+    def on_update(self, cond_data, user_data):
+        self.notify(user_data)
+        self.last_cond_value = cond_data
+        self.last_user_value = user_data
 
     def run(self):
         try:
@@ -46,9 +47,9 @@ class Client:
                     self.ping()
                     next_ping = self.ping_interval
                 if next_loop <= 0:
-                    new = self.loop()
-                    if self.cond(self.last, new):
-                        self.on_update(new)
+                    cond_data, user_data = self.loop()
+                    if self.cond(self.last_cond_value, cond_data):
+                        self.on_update(cond_data, user_data)
                     next_loop = self.interval
 
                 next_stop = min(next_loop, next_ping)
@@ -61,7 +62,24 @@ class Client:
             print("Ending client")
 
     def notify(self, new):
-        requests.post(f"{URL_BASE}/update", json={"key": self.api_key, 'data': self.on_update_message(new)})
+        requests.post(f"{URL_BASE}/{self.url_suffix}", json={"key": self.api_key, 'data': self.on_update_message(new)})
+
+    @staticmethod
+    def cond(old, new):
+        return old != new
+
+    def loop(self) -> Tuple[str, str]:
+        raise NotImplementedError
+
+    def on_update_message(self, new):
+        raise NotImplementedError
+
+
+class ImageClient(Client):
+    url_suffix = "update_image"
+
+    def loop(self) -> Tuple[str, str]:
+        raise NotImplementedError
 
     def on_update_message(self, new):
         raise NotImplementedError
@@ -73,28 +91,20 @@ class ListenFileClient(Client):
     def __init__(self, path: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.path = path
-        self.last_content = ""
 
     def on_update_message(self, new):
-        with open(self.path, 'r') as file:
-            value = file.read().splitlines(keepends=True)
-
-        diff = ''.join(unified_diff(self.last_content, value))
-        return f"Update at {self.last} on file {self.path} with value: \n\n{diff}"
-
-    def on_update(self, new):
-        super(ListenFileClient, self).on_update(new)
-        with open(self.path, 'r') as file:
-            value = file.read().splitlines(keepends=True)
-
-        self.last_content = value
+        diff = ''.join(unified_diff(self.last_user_value, new))
+        return f"Update at {self.last_cond_value} on file {self.path} with value: \n\n{diff}"
 
     def loop(self):
         update = os.path.getmtime(self.path) if os.path.exists(self.path) else None
         if update is None:
             return None
         date = datetime.datetime.fromtimestamp(update)
-        return date.isoformat()
+        with open(self.path, 'r') as file:
+            value = file.read().splitlines(keepends=True)
+
+        return date.isoformat(), value
 
 
 class ListenProcessClient(Client):
@@ -105,7 +115,7 @@ class ListenProcessClient(Client):
         self.pk = pk
 
     def on_update_message(self, new):
-        response = f'Process with pk={self.pk} updated\nfrom : {self.last}\nto: '
+        response = f'Process with pk={self.pk} updated\nfrom : {self.last_user_value}\nto: '
         if new == '':
             response += "finished"
         else:
@@ -115,4 +125,4 @@ class ListenProcessClient(Client):
     def loop(self):
         p1 = subprocess.Popen(["ps", "-o", "pid=", "-p", self.pk], stdout=subprocess.PIPE)
         res = p1.communicate()
-        return res[0].decode()
+        return res[0].decode(), res[0].decode()

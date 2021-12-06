@@ -10,7 +10,7 @@ from flask_restful import Resource, Api, reqparse
 
 import logging
 
-from models import Listener, Message
+from .models import Listener, Message
 
 env = Env()
 env.read_env()
@@ -78,7 +78,10 @@ class Update(Resource):
         listener = Listener.get(Listener.key == data["key"])
         if listener.enable:
             Message.create(listener=listener, data=data["data"], timestamp=dt)
-            msg = f"{listener.description} listener new message:\n{data['data']}"
+            if listener.notification_header:
+                msg = f"{listener.description} listener new message:\n{data['data']}"
+            else:
+                msg = data['data']
             self.notify(listener.chat_id, msg)
             return {}, 200
         return {}, 403
@@ -86,10 +89,11 @@ class Update(Resource):
 
 class UpdateImage(Resource):
     # noinspection PyMethodMayBeStatic
-    def notify(self, chat_id, base64_img: str, caption: str):
+    def notify(self, chat_id, base64_img: str, caption: str, notification_header: bool = True):
         img = base64.b64decode(base64_img)
-        requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendMessage",
-                      json={'chat_id': chat_id, 'text': caption})
+        if notification_header:
+            requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendMessage",
+                          json={'chat_id': chat_id, 'text': caption})
 
         requests.post(f"https://api.telegram.org/bot{env.str('BOT_KEY')}/sendPhoto?chat_id={chat_id}",
                       files={'photo': img})
@@ -102,7 +106,7 @@ class UpdateImage(Resource):
         if listener.enable:
             Message.create(listener=listener, data=data["data"], timestamp=dt)
             msg = f"{listener.description} listener new message:\n"
-            self.notify(listener.chat_id, data['data'], msg)
+            self.notify(listener.chat_id, data['data'], msg, listener.notification_header)
             return {}, 200
         return {}, 403
 

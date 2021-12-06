@@ -134,3 +134,4 @@ listeners/**
 listener_bot/.env
 client/.env
 client/custom/**
+assets/**

@@ -14,6 +14,7 @@ class Listener(BaseModel):
     key = peewee.CharField()
     description = peewee.CharField()
     enable = peewee.BooleanField(default=True)
+    notification_header = peewee.BooleanField(default=True)
 
 
 class Message(BaseModel):
