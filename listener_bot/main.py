@@ -40,14 +40,23 @@ def check_whitelist(func):
 # noinspection PyUnusedLocal
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi! I am Listener Bot and i can listen processes')
+    update.message.reply_text(
+        'Hi! I am Listener Bot and i can listen processes\n'
+        'Posible Commands: \n'
+        '/create_listener : create listener api key \n'
+        '/disable_listener : disable listener api key \n'
+    )
     logger.info(update.message)  # INIT: host the bot , send a /start , add chat_id (on this log) to whitelist
 
 
 # noinspection PyUnusedLocal
 def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
+    update.message.reply_text(
+        'Posible Commands: \n'
+        '/create_listener : create listener api key \n'
+        '/disable_listener : disable listener api key \n'
+    )
 
 
 # noinspection PyUnusedLocal
