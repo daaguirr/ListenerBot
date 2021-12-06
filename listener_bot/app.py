@@ -10,7 +10,7 @@ from flask_restful import Resource, Api, reqparse
 
 import logging
 
-from .models import Listener, Message
+from models import Listener, Message
 
 env = Env()
 env.read_env()
